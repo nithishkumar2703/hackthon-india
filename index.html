@@ -560,6 +560,7 @@ async function deleteCommunityPost(id){
 
 /* ---------- Community data + display ---------- */
 let endingToday = [];
+let endingByState = [];
 async function loadCommunity(){
   try{
     const today=new Date().toISOString().split('T')[0];
@@ -568,6 +569,38 @@ async function loadCommunity(){
     endingToday=communityPosts.filter(h=>h.deadline===today);
   }catch(e){ communityPosts=[]; endingToday=[]; }
 }
+function computeEndingToday(){
+  const today=new Date().toISOString().split('T')[0];
+  const counts={};
+  let total=0;
+  allHackathons.forEach(h=>{ if(h.end_date===today){ total++; const s=(h.states||{}).name||'Online'; counts[s]=(counts[s]||0)+1; }});
+  communityPosts.forEach(h=>{ if(h.deadline===today){ total++; counts['Community']=(counts['Community']||0)+1; }});
+  endingToday=total;
+  endingByState=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+}
+function renderEndingBar(){
+  computeEndingToday();
+  const bar=document.getElementById('endingBar');
+  if(endingToday>0){
+    bar.style.display='flex';
+    bar.innerHTML='<span class="e-count">'+endingToday+'</span><span class="e-text">'+endingToday+' hackathon'+(endingToday>1?'s':'')+' ending today!</span><span class="e-arrow">Click to see breakdown →</span>';
+  }else{ bar.style.display='none'; }
+}
+function showEndingToday(){
+  computeEndingToday();
+  if(!endingToday){ toast('No hackathons ending today'); return; }
+  let html='<div class="modal"><div class="modal-head"><h2>Hackathons ending today</h2><button class="modal-x" onclick="closeEndingToday()"><i class="fa-solid fa-xmark"></i></button></div>';
+  html+='<div class="sub">'+endingToday+' total ending today</div>';
+  html+=endingByState.map(function(s){ return '<div class="d-row"><i class="fa-solid fa-map-location-dot"></i> <b>'+esc(s[0])+'</b> — '+s[1]+' hackathon'+(s[1]>1?'s':'')+'</div>'; }).join('');
+  html+='<div style="margin-top:14px">';
+  const today=new Date().toISOString().split('T')[0];
+  allHackathons.forEach(function(h){ if(h.end_date===today){ html+='<div class="dash-item"><div class="dash-thumb"><i class="fa-solid fa-flag"></i></div><div class="dash-info"><div class="dash-title">'+esc(h.title)+'</div><div class="dash-meta">'+esc((h.states||{}).name||'Online')+(h.city?' · '+esc(h.city):'')+'</div></div></div>'; }});
+  communityPosts.forEach(function(h){ if(h.deadline===today){ html+='<div class="dash-item"><div class="dash-thumb" style="background:#7C3AED"><i class="fa-solid fa-flag"></i></div><div class="dash-info"><div class="dash-title">'+esc(h.title)+'</div><div class="dash-meta">Community · Posted by '+esc(h.user_name||'Anonymous')+'</div></div></div>'; }});
+  html+='</div></div>';
+  document.getElementById('postOverlay').innerHTML=html;
+  document.getElementById('postOverlay').style.display='flex';
+}
+function closeEndingToday(){ const ov=document.getElementById('postOverlay'); ov.style.display='none'; ov.innerHTML=''; }
 function communityCard(h){
   return '<div class="card ccard" onclick="openCommunityDetail('+h.id+')">'+
     '<div class="card-img"><div class="ph" style="font-size:34px;color:rgba(255,255,255,.14)"><i class="fa-solid fa-flag"></i></div>'+
@@ -598,8 +631,6 @@ function openCommunityDetail(id){
   document.getElementById('postOverlay').style.display='flex';
 }
 function closeCommunityDetail(){ const ov=document.getElementById('postOverlay'); ov.style.display='none'; ov.innerHTML=''; }
-
-function showEndingToday(){ selectedFilter='COMMUNITY'; searchInput.value=''; query=''; renderFilters(); renderGrid(); }
 
 function renderCommunityGrid(){
   const list=getFiltered();
@@ -639,11 +670,7 @@ async function load(){
     const ul=document.getElementById('updatedLine');
     if(lastUpd){ ul.style.display='flex'; ul.innerHTML=(navigator.onLine?'':'<span class="off-chip">OFFLINE</span> ')+'<span class="dot"></span> Updated daily at 9 AM IST &middot; Last refresh: <b>'+lastUpd.toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit'})+'</b>'; }
     renderFilters(); renderGrid();
-    const bar=document.getElementById('endingBar');
-    if(endingToday.length){
-      bar.style.display='flex';
-      bar.innerHTML='<span class="e-count">'+endingToday.length+'</span><span class="e-text">'+endingToday.length+' community hackathon'+(endingToday.length>1?'s':'')+' ending today!</span><span class="e-arrow">Click to see →</span>';
-    }else{ bar.style.display='none'; }
+    renderEndingBar();
   }catch(e){
     app.innerHTML='<div class="empty"><i class="fa-solid fa-triangle-exclamation"></i>Could not load.<br><small>'+esc(e.message)+'</small><br><br><button class="btn-primary" onclick="load()">Retry</button></div>';
   }
