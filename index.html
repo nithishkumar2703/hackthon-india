@@ -582,22 +582,24 @@ function renderEndingBar(){
   computeEndingToday();
   const btn=document.getElementById('endingBtn');
   const cnt=document.getElementById('endingCount');
-  if(endingToday>0){
-    btn.style.display='inline-block';
-    cnt.textContent=endingToday;
-  }else{ btn.style.display='none'; }
+  btn.style.display='inline-block';
+  cnt.textContent=endingToday>0?endingToday:'0';
 }
 function showEndingToday(){
   computeEndingToday();
-  if(!endingToday){ toast('No hackathons ending today'); return; }
-  let html='<div class="modal"><div class="modal-head"><h2>Hackathons ending today</h2><button class="modal-x" onclick="closeEndingToday()"><i class="fa-solid fa-xmark"></i></button></div>';
-  html+='<div class="sub">'+endingToday+' total ending today</div>';
-  html+=endingByState.map(function(s){ return '<div class="d-row"><i class="fa-solid fa-map-location-dot"></i> <b>'+esc(s[0])+'</b> — '+s[1]+' hackathon'+(s[1]>1?'s':'')+'</div>'; }).join('');
-  html+='<div style="margin-top:14px">';
-  const today=new Date().toISOString().split('T')[0];
-  allHackathons.forEach(function(h){ if(h.end_date===today){ html+='<div class="dash-item"><div class="dash-thumb"><i class="fa-solid fa-flag"></i></div><div class="dash-info"><div class="dash-title">'+esc(h.title)+'</div><div class="dash-meta">'+esc((h.states||{}).name||'Online')+(h.city?' · '+esc(h.city):'')+'</div></div></div>'; }});
-  communityPosts.forEach(function(h){ if(h.deadline===today){ html+='<div class="dash-item"><div class="dash-thumb" style="background:#7C3AED"><i class="fa-solid fa-flag"></i></div><div class="dash-info"><div class="dash-title">'+esc(h.title)+'</div><div class="dash-meta">Community · Posted by '+esc(h.user_name||'Anonymous')+'</div></div></div>'; }});
-  html+='</div></div>';
+  let html='<div class="modal"><div class="modal-head"><h2><i class="fa-solid fa-fire"></i> Ending Today</h2><button class="modal-x" onclick="closeEndingToday()"><i class="fa-solid fa-xmark"></i></button></div>';
+  if(!endingToday){
+    html+='<div class="sub" style="text-align:center;padding:24px 0;color:#94A3B8"><i class="fa-solid fa-calendar-check" style="font-size:32px;margin-bottom:8px;display:block;color:#334155"></i>No hackathons ending today. All clear!</div>';
+  }else{
+    html+='<div class="sub">'+endingToday+' total ending today</div>';
+    html+=endingByState.map(function(s){ return '<div class="d-row"><i class="fa-solid fa-map-location-dot"></i> <b>'+esc(s[0])+'</b> — '+s[1]+' hackathon'+(s[1]>1?'s':'')+'</div>'; }).join('');
+    html+='<div style="margin-top:14px">';
+    const today=new Date().toISOString().split('T')[0];
+    allHackathons.forEach(function(h){ if(h.end_date===today){ html+='<div class="dash-item"><div class="dash-thumb"><i class="fa-solid fa-flag"></i></div><div class="dash-info"><div class="dash-title">'+esc(h.title)+'</div><div class="dash-meta">'+esc((h.states||{}).name||'Online')+(h.city?' · '+esc(h.city):'')+'</div></div></div>'; }});
+    communityPosts.forEach(function(h){ if(h.deadline===today){ html+='<div class="dash-item"><div class="dash-thumb" style="background:#7C3AED"><i class="fa-solid fa-flag"></i></div><div class="dash-info"><div class="dash-title">'+esc(h.title)+'</div><div class="dash-meta">Community · Posted by '+esc(h.user_name||'Anonymous')+'</div></div></div>'; }});
+    html+='</div>';
+  }
+  html+='</div>';
   document.getElementById('postOverlay').innerHTML=html;
   document.getElementById('postOverlay').style.display='flex';
 }
