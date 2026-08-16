@@ -640,9 +640,13 @@ def api(path: str, method: str = "GET", body=None):
     if body is not None:
         req.add_header("Content-Type", "application/json")
         req.data = json.dumps(body).encode()
-    with urllib.request.urlopen(req, timeout=30) as r:
-        raw = r.read().decode()
-        return json.loads(raw) if raw else []
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            raw = r.read().decode()
+            return json.loads(raw) if raw else []
+    except urllib.error.HTTPError as e:
+        print(f"  API {method} {path} -> HTTP {e.code}: {e.read().decode()[:300]}")
+        raise
 
 
 def insert_hackathons(items):
@@ -682,9 +686,23 @@ def insert_hackathons(items):
                 rows[-1][field] = it[field]
 
     print(f"  -> adding {len(rows)} hackathons ({skipped} skipped, unclassified)")
-    if rows:
+    if not rows:
+        return
+    try:
         api("/rest/v1/hackathons", "POST", rows)
         print("  DONE")
+    except Exception as e:
+        print(f"  batch insert failed ({e}); retrying row-by-row to skip bad rows")
+        added, failed = 0, []
+        for row in rows:
+            try:
+                api("/rest/v1/hackathons", "POST", row)
+                added += 1
+            except Exception:
+                failed.append(row.get("title", "?"))
+        print(f"  -> inserted {added}, skipped {len(failed)} bad rows:")
+        for t in failed:
+            print("     -", t)
 
 
 def insert_submissions(items):
