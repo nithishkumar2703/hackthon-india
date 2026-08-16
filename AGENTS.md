@@ -18,6 +18,24 @@ hackathons, so the site stays fresh with zero manual work.
 3. Visitors can submit their own hackathon -> goes into the `submissions` table
    (pending review).
 
+## Community posts (NO login required)
+- Anyone can post without signing in. Their posts go into `user_hackathons` —
+  NEVER into the auto-fetched `hackathons` table.
+- NO auth, NO storage/uploads. Posts have: user_name, title, description,
+  start_date (optional), deadline (required), website, contact, and a user-chosen
+  6-digit `delete_pass` (required). To delete, the poster must type that password
+  back — deletion goes through the `delete_post(id, pass)` RPC which checks it
+  server-side, so nobody can delete someone else's post.
+- The password column is hidden from the public (column-level grants: public can
+  SELECT/INSERT only non-secret columns). The poster's browser keeps the password
+  in localStorage (`hackindia_myposts`) so My Posts lists their posts.
+- A post is auto-deleted from the DB the morning after its deadline passes
+  (pg_cron job `delete-expired-community`, 22:30 UTC daily) and hidden from the
+  UI immediately via `deadline=gte.<today>`.
+- Schema: see `database/user_hackathons.sql` (run in Supabase SQL editor once).
+  RLS: public read + insert; direct delete blocked; `my_posts()` lists the posts
+  for a password list.
+
 ## Files
 - `index.html` — THE app. Everything (HTML, CSS, JS) in one file. No build step.
 - `auto_finder/fetch_hackathons.py` — the daily finder script.
@@ -34,6 +52,13 @@ hackathons, so the site stays fresh with zero manual work.
 NULL = online), city, venue, mode (`online`|`offline`|`hybrid`), start_date,
 end_date, deadline, thumbnail_url, website_url, organizer_id, prize_pool,
 max_team_size, is_active, created_at.
+
+`user_hackathons` (community) columns: id, user_name, title, description,
+start_date, deadline, website, contact, delete_pass, is_active, created_at. RLS:
+public read + insert, no direct delete (blocked); deletes go through the
+`delete_post(id, pass)` RPC; `my_posts(passes)` RPC for the My Posts view. The
+`delete_pass` column is excluded from the public select/insert grants. Expired
+rows auto-deleted daily by pg_cron (`delete-expired-community`).
 
 ## GOLDEN RULES (breaking any of these = crash or leak)
 
@@ -52,8 +77,10 @@ max_team_size, is_active, created_at.
    gradient with category emoji + title + mode badge (`thumbHTML()`/`phOf()`).
 5. Keep the freshness features working: `updated-line` ("Updated daily at 9 AM
    IST"), `NEW` badge (`isNew()`, last 7 days), newest-first sort.
-6. Vanilla JS only. No build tools, no npm, no new libraries. FontAwesome + Google
-   Fonts are loaded from CDN already — reuse them, don't add more.
+6. Vanilla JS only. No build tools, no npm, no new libraries/libraries CDNs beyond
+   FontAwesome + Google Fonts. All Supabase calls (including community posts and
+   the `delete_post` / `my_posts` RPCs) go through the existing `api()` REST
+   helper — never add supabase-js back.
 7. If you change the database schema, update `database/setup.sql` AND regenerate
    `preview_real.html` with `build_preview_real.py`. Never hand-edit generated files.
 8. Don't delete the daily workflow or change its cron without the user's explicit
