@@ -1,0 +1,26 @@
+name: hackathon_india
+description: Discover hackathons across Indian states.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  supabase_flutter: ^2.8.0
+  url_launcher: ^6.3.1
+  share_plus: ^10.1.4
+  intl: ^0.19.0
+  flutter_svg: ^2.0.10
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/logo.svg

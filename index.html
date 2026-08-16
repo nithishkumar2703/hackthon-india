@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0F172A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Hackathon India</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/logo.svg">
+<link rel="apple-touch-icon" href="assets/logo.svg">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body { background: #0F172A; color: #E2E8F0; font-family: 'Segoe UI', Roboto, Arial, sans-serif; overflow-x: hidden; }
+  ::-webkit-scrollbar { height: 5px; width: 8px; }
+  ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+
+  /* ---------- Header ---------- */
+  .header { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: rgba(15,23,42,.9); backdrop-filter: blur(8px); border-bottom: 1px solid #1E293B; position: sticky; top: 0; z-index: 100; }
+  .logo-box { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .logo-box img { height: 36px; width: auto; }
+  .brand { color: #fff; font-size: 12px; font-weight: 800; line-height: 1.2; letter-spacing: .6px; white-space: nowrap; }
+  .search { flex: 1; max-width: 440px; position: relative; }
+  .search input { width: 100%; background: #1E293B; border: 1px solid transparent; border-radius: 10px; color: #fff; padding: 10px 12px 10px 36px; font-size: 13px; outline: none; transition: border .15s; }
+  .search input:focus { border-color: #10B981; }
+  .search input::placeholder { color: #64748B; }
+  .search .s-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #64748B; font-size: 13px; pointer-events: none; }
+  .suggest { position: absolute; top: calc(100% + 5px); left: 0; right: 0; background: #1E293B; border: 1px solid #334155; border-radius: 12px; overflow: hidden; box-shadow: 0 12px 34px rgba(0,0,0,.55); z-index: 200; }
+  .suggest-label { padding: 8px 14px 4px; font-size: 9px; font-weight: 700; letter-spacing: 1.2px; color: #64748B; }
+  .suggest-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; font-size: 13px; color: #fff; cursor: pointer; }
+  .suggest-item:hover, .suggest-item.hl { background: #334155; }
+  .suggest-item .s-ic { width: 18px; text-align: center; color: #10B981; font-size: 13px; }
+
+  .btn-primary { border: 1.5px solid #10B981; background: transparent; color: #10B981; font-size: 11px; font-weight: 700; padding: 9px 14px; border-radius: 10px; cursor: pointer; white-space: nowrap; line-height: 1.2; text-align: center; transition: all .15s; flex-shrink: 0; }
+  .btn-primary:hover { background: rgba(16,185,129,.12); }
+
+  /* ---------- Filters ---------- */
+  .filters { display: flex; gap: 8px; padding: 10px 16px; overflow-x: auto; white-space: nowrap; border-bottom: 1px solid #1E293B; scrollbar-width: none; }
+  .filters::-webkit-scrollbar { display: none; }
+  .chip { padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1.5px solid #334155; color: #94A3B8; background: #1E293B; transition: all .15s; flex-shrink: 0; }
+  .chip:hover { border-color: #64748B; }
+  .chip.on { background: #10B981; color: #fff; border-color: #10B981; }
+  .chip.state.on { background: #7C3AED; border-color: #7C3AED; }
+  .chip .count { opacity: .6; font-size: 10px; margin-left: 3px; }
+
+  /* ---------- Grid ---------- */
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; padding: 16px; }
+  @media (max-width: 1100px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 600px) { .grid { grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 10px; } }
+  @media (max-width: 380px) { .grid { grid-template-columns: 1fr; } }
+
+  .card { background: linear-gradient(180deg, #1E293B 0%, #0F172A 100%); border-radius: 14px; overflow: hidden; border: 1px solid #334155; cursor: pointer; position: relative; transition: transform .15s, box-shadow .15s, border .15s; }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(0,0,0,.45); border-color: #10B981; }
+  .card.faved { border-color: #F59E0B; }
+  .card-img { position: relative; height: 110px; overflow: hidden; }
+  .card-img img { width: 100%; height: 100%; object-fit: cover; }
+  .card-img .overlay { position: absolute; inset: 0; background: linear-gradient(transparent 30%, #1E293B 95%); }
+  .card-img .ph { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 30px; color: rgba(255,255,255,.12); }
+  .badge-status { position: absolute; top: 8px; right: 8px; padding: 3px 8px; border-radius: 6px; font-size: 9px; font-weight: 700; letter-spacing: .4px; color: #fff; }
+  .blive { background: #10B981; } .bup { background: #F59E0B; } .bon { background: #3B82F6; } .bend { background: #EF4444; }
+  .gov-badge { position: absolute; top: 8px; left: 40px; padding: 3px 8px; border-radius: 6px; font-size: 9px; font-weight: 700; letter-spacing: .4px; color: #fff; background: #7C3AED; display: inline-flex; align-items: center; gap: 4px; z-index: 2; }
+  .fav-btn { position: absolute; top: 7px; left: 8px; width: 26px; height: 26px; border-radius: 50%; background: rgba(15,23,42,.65); border: none; color: #94A3B8; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 3; }
+  .fav-btn.faved { color: #F59E0B; }
+  .card-img .title { position: absolute; bottom: 8px; left: 10px; right: 10px; color: #fff; font-size: 12.5px; font-weight: 800; line-height: 1.25; text-transform: uppercase; letter-spacing: .3px; text-shadow: 0 1px 4px rgba(0,0,0,.6); }
+  .card-body { padding: 9px 12px 12px; }
+  .org-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+  .org-avatar { width: 20px; height: 20px; border-radius: 50%; background: #334155; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #94A3B8; flex-shrink: 0; }
+  .org-name { font-size: 11px; color: #94A3B8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .meta-row { display: flex; align-items: center; gap: 5px; font-size: 10px; color: #94A3B8; margin-bottom: 3px; }
+  .meta-row i { font-size: 10px; opacity: .5; width: 12px; text-align: center; }
+  .prize-row { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; }
+  .prize-label { font-size: 10px; color: #64748B; }
+  .prize-val { font-size: 12px; font-weight: 700; color: #fff; }
+  .countdown { font-size: 10px; color: #F59E0B; margin-top: 4px; }
+  .countdown.closed { color: #EF4444; }
+  .tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+  .tag { font-size: 9px; padding: 2px 7px; border-radius: 4px; border: 1px solid #334155; color: #94A3B8; }
+
+  /* ---------- Detail ---------- */
+  .detail-wrap { position: fixed; inset: 0; z-index: 300; overflow-y: auto; background: #0F172A; animation: slideIn .22s ease; }
+  @keyframes slideIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
+  .detail-topbar { position: sticky; top: 0; display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: rgba(15,23,42,.92); backdrop-filter: blur(8px); border-bottom: 1px solid #1E293B; z-index: 10; }
+  .back-btn { background: none; border: none; color: #94A3B8; font-size: 13px; cursor: pointer; padding: 6px 8px; display: flex; align-items: center; gap: 6px; }
+  .back-btn:hover { color: #fff; }
+  .tb-logo { height: 26px; margin-left: 4px; }
+  .detail-page { max-width: 700px; margin: 0 auto; padding: 0 16px 30px; }
+  .detail-hero { width: 100%; height: 240px; object-fit: cover; border-radius: 16px; margin-top: 14px; }
+  .detail-ph { width: 100%; height: 240px; border-radius: 16px; background: #1E293B; display: flex; align-items: center; justify-content: center; font-size: 64px; color: rgba(255,255,255,.12); margin-top: 14px; }
+  .ph-wrap { position: relative; width: 100%; height: 100%; }
+  .ph-wrap .ph { position: absolute; inset: 0; }
+  .ph-wrap img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .ph { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; position: relative; flex-direction: column; gap: 4px; padding: 8px; box-sizing: border-box; }
+  .ph .ph-emoj { font-size: 22px; }
+  .ph .ph-title { font-size: 12px; font-weight: 700; color: rgba(255,255,255,.95); text-align: center; line-height: 1.3; max-width: 100%; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-shadow: 0 2px 6px rgba(0,0,0,.5); }
+  .ph .ph-mode { position: absolute; top: 8px; right: 8px; background: rgba(16,185,129,.85); color: #fff; font-size: 8px; font-weight: 700; padding: 3px 8px; border-radius: 5px; letter-spacing: .5px; }
+  .ph-wrap.detail-hero .ph-emoj { font-size: 56px; }
+  .ph-wrap.detail-hero .ph-title { font-size: 20px; -webkit-line-clamp: 3; }
+  .ph-wrap.detail-hero .ph-mode { font-size: 11px; }
+  .ph-wrap .logo-img { position: absolute; inset: 0; margin: auto; width: 56px; height: 56px; object-fit: contain; border-radius: 12px; background: rgba(255,255,255,.92); padding: 6px; box-shadow: 0 4px 14px rgba(0,0,0,.35); }
+  .ph-wrap .govt-img { width: 84px; height: 84px; border-radius: 50%; background: #fff; padding: 6px; }
+  .ph-wrap.detail-hero { height: 240px; margin-top: 14px; border-radius: 16px; overflow: hidden; }
+  .detail-title { font-size: 24px; font-weight: 800; color: #fff; margin: 16px 0 4px; line-height: 1.3; }
+  .detail-tagline { font-size: 13px; color: #94A3B8; margin-bottom: 14px; }
+  .detail-badge { display: inline-block; padding: 4px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; color: #fff; margin-top: 14px; }
+  .section { background: #1E293B; border-radius: 12px; padding: 14px; margin: 10px 0; }
+  .d-row { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #CBD5E1; margin-bottom: 9px; }
+  .d-row:last-child { margin-bottom: 0; }
+  .d-row i { font-size: 14px; color: #64748B; width: 18px; text-align: center; }
+  .d-row b { color: #fff; font-weight: 600; }
+  .prize-big { font-size: 22px; font-weight: 800; color: #F59E0B; }
+  .about { font-size: 14px; color: #CBD5E1; line-height: 1.75; margin: 14px 0; }
+  .action-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 13px; border-radius: 10px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; margin-bottom: 8px; transition: filter .15s; }
+  .action-btn:hover { filter: brightness(1.1); }
+  .action-btn.primary { background: #10B981; color: #fff; }
+  .action-btn.outline { background: transparent; border: 1.5px solid #334155; color: #E2E8F0; }
+  .action-btn.outline:hover { border-color: #64748B; }
+  .btn-row { display: flex; gap: 8px; }
+  .btn-row .action-btn { flex: 1; }
+
+  /* ---------- Post modal ---------- */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(2,6,23,.75); backdrop-filter: blur(4px); z-index: 400; display: flex; align-items: flex-end; justify-content: center; animation: fadeIn .2s ease; }
+  @media (min-width: 600px) { .modal-overlay { align-items: center; } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .modal { width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; background: #1E293B; border-radius: 18px 18px 0 0; padding: 20px; border: 1px solid #334155; animation: riseIn .25s ease; }
+  @media (min-width: 600px) { .modal { border-radius: 18px; } }
+  @keyframes riseIn { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal h2 { color: #fff; font-size: 18px; margin-bottom: 4px; }
+  .modal .sub { color: #94A3B8; font-size: 12px; margin-bottom: 16px; }
+  .field { margin-bottom: 12px; }
+  .field label { display: block; color: #94A3B8; font-size: 11px; font-weight: 600; margin-bottom: 5px; }
+  .field input, .field select, .field textarea { width: 100%; background: #0F172A; border: 1px solid #334155; border-radius: 9px; color: #fff; padding: 10px 12px; font-size: 13px; outline: none; font-family: inherit; }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: #10B981; }
+  .field select option { background: #1E293B; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 16px; }
+  .modal-actions button { flex: 1; }
+
+  /* ---------- States ---------- */
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1E293B; color: #fff; border: 1px solid #10B981; padding: 11px 18px; border-radius: 10px; font-size: 13px; z-index: 500; box-shadow: 0 8px 24px rgba(0,0,0,.5); animation: fadeIn .2s ease; }
+  .spinner { text-align: center; padding: 70px 20px; color: #64748B; font-size: 14px; }
+  .spinner i { font-size: 28px; color: #10B981; display: block; margin-bottom: 12px; }
+  .empty { text-align: center; padding: 70px 20px; color: #64748B; }
+  .empty i { font-size: 40px; color: #334155; display: block; margin-bottom: 12px; }
+  .skeleton { height: 230px; background: linear-gradient(90deg,#1E293B 25%,#263449 50%,#1E293B 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: 14px; }
+  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+  .top-btn { position: fixed; top: 92px; left: 14px; z-index: 50; width: 38px; height: 38px; border-radius: 50%; border: 1px solid #334155; background: #1E293B; color: #E2E8F0; font-size: 14px; cursor: pointer; display: none; align-items: center; justify-content: center; box-shadow: 0 6px 18px rgba(0,0,0,.45); }
+  .top-btn.show { display: flex; }
+  .top-btn:hover { background: #10B981; color: #fff; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo-box">
+    <img src="assets/logo.svg" alt="Hackathon India">
+    <div class="brand">HACKATHON<br>INDIA</div>
+  </div>
+  <div class="search">
+    <i class="fas fa-search s-icon"></i>
+    <input id="searchInput" type="text" placeholder="Search events, states, or cities..." autocomplete="off">
+    <div class="suggest" id="suggestBox" style="display:none"></div>
+  </div>
+  <button class="btn-primary" onclick="openPost()"><i class="fas fa-plus"></i>&nbsp; Post</button>
+</div>
+<button class="top-btn" id="topBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top"><i class="fa-solid fa-arrow-up"></i></button>
+
+<div class="filters" id="filters"></div>
+<div id="app"><div class="spinner"><i class="fas fa-spinner fa-spin"></i>Loading hackathons...</div></div>
+
+<div class="detail-wrap" id="detailWrap" style="display:none"></div>
+<div class="modal-overlay" id="postOverlay" style="display:none" onclick="if(event.target===this)closePost()"></div>
+
+<script>
+const SUPABASE_URL = 'https://ciarlvcyhieieioxeyth.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_GSPHK8dXrCbgxxXIh4U3BQ_K9MgNKP8';
+const FAV_KEY = 'hackindia_favs';
+
+async function api(path, opts) {
+  const r = await fetch(SUPABASE_URL + '/rest/v1/' + path, Object.assign({
+    headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
+  }, opts || {}));
+  if (!r.ok) { let m='API error '+r.status; try{ m = (await r.json()).message || m; }catch(e){} throw new Error(m); }
+  const t = await r.text();
+  return t ? JSON.parse(t) : null;
+}
+
+const app = document.getElementById('app');
+const filtersEl = document.getElementById('filters');
+const searchInput = document.getElementById('searchInput');
+const suggestBox = document.getElementById('suggestBox');
+const detailWrap = document.getElementById('detailWrap');
+
+let allHackathons = [];
+let selectedFilter = 'ALL INDIA';
+let query = '';
+let favs = new Set(JSON.parse(localStorage.getItem(FAV_KEY) || '[]'));
+
+function esc(s) { return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function toast(msg){ const t=document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2600); }
+
+function statusOf(h) {
+  const now = new Date();
+  const end = h.end_date ? new Date(h.end_date+'T23:59:59') : null;
+  const start = h.start_date ? new Date(h.start_date+'T00:00:00') : null;
+  if (end && end < now) return { text:'ENDED', cls:'bend' };
+  if (h.mode === 'online') return { text:'ONLINE', cls:'bon' };
+  if (start && start <= now && (!end || end >= now)) return { text:'LIVE', cls:'blive' };
+  return { text:'UPCOMING', cls:'bup' };
+}
+function fmtDate(d){ if(!d) return 'TBA'; const x=new Date(d+'T00:00:00'); if(isNaN(x)) return 'TBA'; return x.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}); }
+function countdown(d){ if(!d) return ''; const diff=new Date(d+'T23:59:59')-new Date(); if(diff<0) return '<div class="countdown closed">Registration closed</div>'; const days=Math.floor(diff/86400000); if(days>0) return '<div class="countdown">Registration ends in '+days+' days</div>'; const hrs=Math.floor(diff/3600000); return hrs>0?'<div class="countdown">Ends in '+hrs+' hours</div>':'<div class="countdown">Ends soon</div>'; }
+function placeText(h){ if(h.mode==='online') return 'Online'; return [h.city,(h.states||{}).name].filter(Boolean).join(', '); }
+function domainOf(url){ try{ return url.replace(/^https?:\/\//,'').replace(/^www\./,'').split('/')[0].split(':')[0]; }catch(e){ return ''; } }
+function isGovernment(h){
+  const hay=((h.title||'')+' '+(h.description||'')+' '+(h.tagline||'')+' '+((h.organizers||{}).name||'')).toLowerCase();
+  return /government|govt\.?|ministry|ministries|aicte|isro\b|drdo\b|defence|niti aayog|niti\b|municipal|smart india|panchayat|police|public health|railway|bharat sarkar|sarkari|government of|\btamil nadu\b.*\bgovt|\bgovt.*\btamil nadu\b/.test(hay);
+}
+  function phColors(id){ const p=[['#1a1a4e','#0d0d2b'],['#1a3a2e','#0d1f17'],['#2e1a3a','#1a0d22'],['#3a2a1a','#221a0d']]; return p[id%p.length]; }
+  function catEmoji(name){
+    return /ctf|cyber|secur|hack|pwn/i.test(name)?'🛡️':/ai|ml|llm|robot|agent/i.test(name)?'🤖':/game|gaming|jam/i.test(name)?'🎮':/health|medic|bio/i.test(name)?'🩺':/financ|fintech|bank/i.test(name)?'📈':/space|aero|drone|rocket/i.test(name)?'🚀':/green|climate|sustain|eco/i.test(name)?'🌿':/code|dev|program/i.test(name)?'💻':/data|ml|analy/i.test(name)?'📊':'🏆';
+  }
+  function phOf(h, size){
+    const name=(h&&h.title||'Hackathon').trim();
+    let hue=0; for(const c of name) hue=(hue*31+c.charCodeAt(0))%360;
+    const bg='linear-gradient(135deg, hsl('+hue+',65%,28%), hsl('+((hue+70)%360)+',60%,20%))';
+    const mode=h&&h.mode==='online'?'ONLINE':h&&h.states&&h.states.name?h.states.name:'';
+    return '<div class="ph" style="background:'+bg+'">'+
+      '<div class="ph-emoj">'+catEmoji(name)+'</div>'+
+      '<div class="ph-title">'+esc(name)+'</div>'+
+      (mode?'<span class="ph-mode">'+esc(mode)+'</span>':'')+
+      '</div>';
+  }
+  function thumbHTML(h, size){
+    const tnGovt=h&&isGovernment(h)&&h.states&&/tamil nadu/i.test(h.states.name);
+    const ph=phOf(h,size);
+    if(!h||!h.thumbnail_url){
+      if(tnGovt) return '<div class="ph-wrap '+size+'">'+ph+'<img class="'+size+' logo-img govt-img" src="assets/tn-govt.svg" alt="" loading="lazy"></div>';
+      const dom=domainOf(h.website_url||'');
+      if(dom) return '<div class="ph-wrap '+size+'">'+ph+'<img class="'+size+' logo-img" src="https://www.google.com/s2/favicons?domain='+esc(dom)+'&sz=128" alt="" loading="lazy" onerror="this.remove()"></div>';
+      return '<div class="ph-wrap '+size+'">'+ph+'</div>';
+    }
+    return '<div class="ph-wrap '+size+'">'+ph+'<img class="'+size+'" src="'+esc(h.thumbnail_url)+'" loading="lazy" onerror="this.remove()"></div>';
+  }
+function tagsOf(h){ const t=[]; if(h.mode) t.push(h.mode.toUpperCase()); if(h.states&&h.states.name) t.push(h.states.name.toUpperCase()); if(h.city) t.push(h.city.toUpperCase()); return t.slice(0,3); }
+function stateNames(){ const s=new Set(); allHackathons.forEach(h=>{ if(h.states&&h.states.name) s.add(h.states.name); }); return [...s].sort(); }
+
+/* ---------- Favorites ---------- */
+function saveFavs(){ localStorage.setItem(FAV_KEY, JSON.stringify([...favs])); }
+function toggleFav(id, ev){ ev.stopPropagation(); favs.has(id)?favs.delete(id):favs.add(id); saveFavs(); renderGrid(); toast(favs.has(id)?'Added to favourites':'Removed from favourites'); }
+
+/* ---------- Filters ---------- */
+function renderFilters(){
+  const counts={};
+  allHackathons.forEach(h=>{ const k=(h.states||{}).name; if(k) counts[k.toUpperCase()]=(counts[k.toUpperCase()]||0)+1; });
+  const states=Object.keys(counts).sort();
+  const items=['ALL INDIA','FAVOURITES','GOVERNMENT',...states,'ONLINE','UPCOMING'];
+  filtersEl.innerHTML=items.map(f=>{
+    const sel=f===selectedFilter;
+    let cls='chip'; if(sel) cls+=' on'; if(sel&&states.includes(f)) cls+=' state';
+    let c=''; if(f==='ALL INDIA') c=allHackathons.length; else if(f==='FAVOURITES') c=favs.size; else if(f==='GOVERNMENT') c=allHackathons.filter(isGovernment).length; else if(f==='ONLINE') c=allHackathons.filter(h=>h.mode==='online').length; else if(f==='UPCOMING') c=allHackathons.filter(h=>statusOf(h).text!=='ENDED').length; else c=counts[f]||0;
+    return '<span class="'+cls+'" onclick="selectFilter(\''+f+'\')">'+f+(c?'<span class="count">'+c+'</span>':'')+'</span>';
+  }).join('');
+  filtersEl.scrollLeft = filtersEl.scrollWidth;
+}
+function selectFilter(f){ selectedFilter=f; renderFilters(); renderGrid(); }
+
+/* ---------- Suggestions (Google-style) ---------- */
+function buildSuggestions(q){
+  const low=q.toLowerCase(); if(!low) return [];
+  const out=[],seen=new Set(); const add=s=>{ if(!seen.has(s)){seen.add(s);out.push(s);} };
+  const states=stateNames();
+  states.forEach(s=>{ if(s.toLowerCase().startsWith(low)) add(s); });
+  states.forEach(s=>{ if(s.toLowerCase().includes(low)&&!s.toLowerCase().startsWith(low)) add(s); });
+  if('online hackathons'.includes(low)) add('Online hackathons');
+  if('government hackathons'.includes(low)) add('Government hackathons');
+  if(/govt|government|sarkar|sarkari|ministry/.test(low)) add('Government hackathons');
+  allHackathons.forEach(h=>{ if(out.length>=8)return; if(h.title.toLowerCase().includes(low)) add(h.title); if(out.length<8&&h.city&&h.city.toLowerCase().includes(low)) add(h.city); });
+  return out.slice(0,8);
+}
+function showSuggestions(list){
+  if(!list.length){ suggestBox.style.display='none'; return; }
+  suggestBox.innerHTML='<div class="suggest-label">SUGGESTIONS</div>'+list.map(s=>{
+    const isState=stateNames().includes(s), isOnline=s==='Online hackathons', isGov=s==='Government hackathons';
+    const ic=isState?'fa-solid fa-map-location-dot':isOnline?'fa-solid fa-globe':isGov?'fa-solid fa-building-columns':'fa-solid fa-magnifying-glass';
+    return '<div class="suggest-item" data-v="'+esc(s)+'"><span class="s-ic"><i class="'+ic+'"></i></span><span>'+esc(s)+'</span></div>';
+  }).join('');
+  suggestBox.style.display='block';
+}
+let hlIdx=-1;
+function pickSuggestion(s){
+  suggestBox.style.display='none'; hlIdx=-1;
+  if(s==='Online hackathons'){ selectedFilter='ONLINE'; searchInput.value=''; query=''; }
+  else if(s==='Government hackathons'){ selectedFilter='GOVERNMENT'; searchInput.value=''; query=''; }
+  else if(stateNames().includes(s)){ selectedFilter=s.toUpperCase(); searchInput.value=''; query=''; }
+  else { searchInput.value=s; query=s; }
+  renderFilters(); renderGrid();
+}
+suggestBox.addEventListener('click', e=>{ const it=e.target.closest('.suggest-item'); if(it) pickSuggestion(it.dataset.v); });
+
+/* ---------- Grid ---------- */
+function getFiltered(){
+  const q=query.toLowerCase();
+  return allHackathons.filter(h=>{
+    if(q){ const hay=[h.title,h.description,h.city,(h.states||{}).name,(h.organizers||{}).name||''].join(' ').toLowerCase(); if(!hay.includes(q)) return false; }
+    if(selectedFilter==='ALL INDIA') return true;
+    if(selectedFilter==='FAVOURITES') return favs.has(h.id);
+    if(selectedFilter==='GOVERNMENT') return isGovernment(h);
+    if(selectedFilter==='ONLINE') return h.mode==='online';
+    if(selectedFilter==='UPCOMING') return statusOf(h).text!=='ENDED';
+    return (h.states||{}).name && h.states.name.toUpperCase()===selectedFilter;
+  });
+}
+function renderGrid(){
+  const items=getFiltered();
+  if(!items.length){ app.innerHTML='<div class="empty"><i class="fa-regular fa-folder-open"></i>No hackathons found</div>'; return; }
+  app.innerHTML='<div class="grid">'+items.map(h=>{
+    const st=statusOf(h), fav=favs.has(h.id);
+    const [c1,c2]=phColors(h.id);
+    const img=thumbHTML(h,'');
+    const org=h.organizers||{};
+    return '<div class="card'+(fav?' faved':'')+'" onclick="openDetail('+h.id+')">'+
+      '<div class="card-img">'+img+'<div class="overlay"></div>'+
+      '<button class="fav-btn'+(fav?' faved':'')+'" onclick="toggleFav('+h.id+',event)"><i class="'+(fav?'fa-solid':'fa-regular')+' fa-heart"></i></button>'+
+      (isGovernment(h)?'<span class="gov-badge"><i class="fa-solid fa-building-columns"></i> GOVT</span>':'')+
+      '<span class="badge-status '+st.cls+'">'+st.text+'</span>'+
+      '<div class="title">'+esc(h.title)+'</div></div>'+
+      '<div class="card-body">'+
+      (org.name?'<div class="org-row"><div class="org-avatar">'+esc(org.name[0]||'?')+'</div><div class="org-name">'+esc(org.name)+'</div></div>':'')+
+      '<div class="meta-row"><i class="fa-solid fa-location-dot"></i> '+esc(placeText(h)||'Online')+'</div>'+
+      '<div class="meta-row"><i class="fa-solid fa-calendar-days"></i> '+fmtDate(h.start_date)+' — '+fmtDate(h.end_date)+'</div>'+
+      (h.prize_pool?'<div class="prize-row"><span class="prize-label">Prize pool</span><span class="prize-val">'+esc(h.prize_pool)+'</span></div>':'')+
+      countdown(h.deadline)+
+      '<div class="tags">'+tagsOf(h).map(t=>'<span class="tag">'+esc(t)+'</span>').join('')+'</div>'+
+      '</div></div>';
+  }).join('')+'</div>';
+}
+
+/* ---------- Detail ---------- */
+async function openDetail(id){
+  detailWrap.style.display='block';
+  detailWrap.innerHTML='<div class="spinner"><i class="fas fa-spinner fa-spin"></i>Loading...</div>';
+  window.scrollTo(0,0);
+  try{
+    const rows=await api('hackathons?select=*,states(name),organizers(*)&id=eq.'+id);
+    const h=rows[0]; if(!h){ detailWrap.innerHTML='<div class="empty">Not found</div>'; return; }
+    const st=statusOf(h), org=h.organizers||{}, fav=favs.has(h.id);
+    const img=thumbHTML(h,'detail-hero');
+    let html='<div class="detail-topbar"><button class="back-btn" onclick="closeDetail()"><i class="fa-solid fa-arrow-left"></i> Back</button><img class="tb-logo" src="assets/logo.svg" alt="" onerror="this.style.display=\'none\'"></div>'+
+      '<div class="detail-page">'+img+
+      '<span class="detail-badge '+st.cls+'">'+st.text+'</span>'+
+      '<div class="detail-title">'+esc(h.title)+'</div>'+
+      (h.tagline?'<div class="detail-tagline">'+esc(h.tagline)+'</div>':'')+
+      '<div class="section">'+
+      '<div class="d-row"><i class="fa-solid fa-location-dot"></i> <b>'+esc(placeText(h)||'Online')+'</b></div>'+
+      '<div class="d-row"><i class="fa-solid fa-calendar-days"></i> <b>'+fmtDate(h.start_date)+' — '+fmtDate(h.end_date)+'</b></div>'+
+      '<div class="d-row"><i class="fa-solid fa-laptop"></i> <b>'+(h.mode||'hybrid').charAt(0).toUpperCase()+(h.mode||'hybrid').slice(1)+'</b> event</div>'+
+      (h.deadline?'<div class="d-row"><i class="fa-solid fa-hourglass-half"></i> Registration deadline: <b>'+fmtDate(h.deadline)+'</b></div>':'')+
+      '</div>';
+    if(h.prize_pool) html+='<div class="section"><div class="d-row"><i class="fa-solid fa-trophy"></i> <span class="prize-big">'+esc(h.prize_pool)+'</span></div></div>';
+    if(org.name) html+='<div class="section"><div class="d-row"><div class="org-avatar" style="width:30px;height:30px;font-size:15px">'+esc(org.name[0]||'?')+'</div><div><div style="font-size:11px;color:#94A3B8">Organized by</div><div style="font-size:15px;font-weight:600;color:#fff">'+esc(org.name)+'</div></div></div></div>';
+    if(h.description) html+='<div class="about">'+esc(h.description)+'</div>';
+    html+='<button class="action-btn outline" onclick="toggleFav('+h.id+',event)"><i class="'+(fav?'fa-solid':'fa-regular')+' fa-heart"></i> '+(fav?'Remove from favourites':'Add to favourites')+'</button>';
+    if(h.website_url) html+='<a class="action-btn primary" target="_blank" rel="noopener" href="'+esc(h.website_url)+'"><i class="fa-solid fa-globe"></i> Visit Official Website</a>';
+    if(org.whatsapp||org.email||org.phone){
+      html+='<div class="btn-row">';
+      if(org.whatsapp) html+='<a class="action-btn outline" target="_blank" rel="noopener" href="https://wa.me/'+org.whatsapp.replace(/\D/g,'')+'"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>';
+      if(org.email) html+='<a class="action-btn outline" href="mailto:'+esc(org.email)+'"><i class="fa-solid fa-envelope"></i> Email</a>';
+      if(org.phone) html+='<a class="action-btn outline" href="tel:+'+org.phone.replace(/\D/g,'')+'"><i class="fa-solid fa-phone"></i> Call</a>';
+      html+='</div>';
+    }
+    html+='</div>';
+    detailWrap.innerHTML=html;
+    detailWrap.scrollTop=0;
+  }catch(e){ detailWrap.innerHTML='<div class="empty">'+esc(e.message)+'</div>'; }
+}
+function closeDetail(){ detailWrap.style.display='none'; detailWrap.innerHTML=''; renderFilters(); renderGrid(); }
+
+/* ---------- Post a Hackathon ---------- */
+function openPost(){
+  document.getElementById('postOverlay').style.display='flex';
+  const sels=stateNames();
+  document.getElementById('pState').innerHTML='<option value="">Select state (or leave blank for Online)</option>'+sels.map(s=>'<option>'+esc(s)+'</option>').join('');
+}
+function closePost(){ document.getElementById('postOverlay').style.display='none'; }
+async function submitPost(){
+  const title=document.getElementById('pTitle').value.trim();
+  const email=document.getElementById('pEmail').value.trim();
+  if(!title){ toast('Please enter the hackathon name'); return; }
+  if(!email){ toast('Please enter your email'); return; }
+  const payload={ title, email, state:document.getElementById('pState').value, url:document.getElementById('pUrl').value.trim(), description:document.getElementById('pDesc').value.trim(), status:'pending' };
+  try{
+    await api('submissions',{ method:'POST', headers:{ 'Content-Type':'application/json','Prefer':'return=minimal' }, body:JSON.stringify(payload) });
+    toast('Submitted! It will appear after review.');
+    closePost();
+    ['pTitle','pEmail','pUrl','pDesc'].forEach(i=>document.getElementById(i).value='');
+    document.getElementById('pState').value='';
+  }catch(e){ toast('Error: '+e.message); }
+}
+
+/* ---------- Search ---------- */
+searchInput.addEventListener('input', e=>{ query=e.target.value; showSuggestions(buildSuggestions(e.target.value)); renderGrid(); });
+searchInput.addEventListener('keydown', e=>{
+  const items=suggestBox.querySelectorAll('.suggest-item');
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){
+    e.preventDefault();
+    if(items.length){ hlIdx=e.key==='ArrowDown'?(hlIdx+1)%items.length:(hlIdx-1+items.length)%items.length; items.forEach((it,i)=>it.classList.toggle('hl',i===hlIdx)); items[hlIdx].scrollIntoView({block:'nearest'}); }
+  } else if(e.key==='Enter'){
+    if(hlIdx>=0&&items[hlIdx]){ pickSuggestion(items[hlIdx].dataset.v); return; }
+    suggestBox.style.display='none'; hlIdx=-1;
+    const q=query.trim(); const full=stateNames().find(s=>s.toLowerCase()===q.toLowerCase());
+    if(full) pickSuggestion(full);
+    else if(/^(government|govt|sarkari|sarkar|ministry)$/i.test(q)) pickSuggestion('Government hackathons');
+    else renderGrid();
+  }
+});
+document.addEventListener('click', e=>{ if(!e.target.closest('.search')){ suggestBox.style.display='none'; hlIdx=-1; } });
+
+/* ---------- Load ---------- */
+async function load(){
+  app.innerHTML='<div class="spinner"><i class="fas fa-spinner fa-spin"></i>Loading hackathons...</div>';
+  try{
+    const [hack]=await Promise.all([
+      api('hackathons?select=*,states(name),organizers(*)&is_active=eq.true&order=start_date')
+    ]);
+    allHackathons=hack;
+    renderFilters(); renderGrid();
+  }catch(e){
+    app.innerHTML='<div class="empty"><i class="fa-solid fa-triangle-exclamation"></i>Could not load.<br><small>'+esc(e.message)+'</small><br><br><button class="btn-primary" onclick="load()">Retry</button></div>';
+  }
+}
+load();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  setTimeout(() => toast('Install Hackathon India as an app - look for "Add to Home Screen"'), 1500);
+});
+const topBtn=document.getElementById('topBtn');
+window.addEventListener('scroll', ()=>{ topBtn.classList.toggle('show', window.scrollY>600); });
+
+</script>
+</body>
+</html>

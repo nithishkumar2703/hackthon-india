@@ -1,0 +1,22 @@
+name: Daily Hackathon Finder
+
+on:
+  schedule:
+    - cron: "30 3 * * *"   # runs every day at 3:30 AM UTC (9:00 AM India)
+  workflow_dispatch:      # also lets you click "Run workflow" manually
+
+jobs:
+  find-hackathons:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install packages
+        run: pip install beautifulsoup4
+      - name: Run the hackathon finder
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: python auto_finder/fetch_hackathons.py

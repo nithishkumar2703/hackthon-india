@@ -1,0 +1,19 @@
+{
+  "name": "Hackathon India",
+  "short_name": "HackIndia",
+  "description": "Discover hackathons across all Indian states - online and in-person.",
+  "start_url": "index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0F172A",
+  "theme_color": "#0F172A",
+  "icons": [
+    {
+      "src": "assets/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

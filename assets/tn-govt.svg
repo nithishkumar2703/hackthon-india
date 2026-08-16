@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1a3a6b"/>
+      <stop offset="1" stop-color="#0f2450"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f7c948"/>
+      <stop offset="1" stop-color="#d99a2b"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" fill="url(#bg)"/>
+  <circle cx="100" cy="100" r="88" fill="none" stroke="#f7c948" stroke-width="3" opacity="0.5"/>
+  <circle cx="100" cy="100" r="80" fill="none" stroke="#f7c948" stroke-width="1.5" opacity="0.35"/>
+  <!-- Temple gopuram -->
+  <g stroke="#f7c948" stroke-width="2" fill="none" stroke-linejoin="round">
+    <polygon points="66,64 74,92 74,148 126,148 126,92 134,64" fill="url(#gold)" stroke="#fff" stroke-width="1.5"/>
+    <polygon points="74,92 100,84 126,92" fill="#0f2450" stroke="#fff" stroke-width="1.5"/>
+    <polygon points="60,56 72,66 128,66 140,56 100,44" fill="url(#gold)" stroke="#fff" stroke-width="1.5"/>
+    <circle cx="100" cy="52" r="3" fill="#0f2450" stroke="none"/>
+    <rect x="90" y="68" width="20" height="18" rx="2" fill="#0f2450" stroke="none"/>
+  </g>
+  <!-- Base platform -->
+  <rect x="62" y="150" width="76" height="8" rx="2" fill="url(#gold)"/>
+  <!-- Flag -->
+  <g>
+    <rect x="40" y="70" width="3" height="60" fill="#f7c948"/>
+    <rect x="43" y="72" width="26" height="10" fill="#f05a33"/>
+    <rect x="43" y="84" width="26" height="10" fill="#fff"/>
+    <rect x="43" y="96" width="26" height="10" fill="#2e7d32"/>
+  </g>
+  <g>
+    <rect x="157" y="70" width="3" height="60" fill="#f7c948"/>
+    <rect x="131" y="72" width="26" height="10" fill="#f05a33"/>
+    <rect x="131" y="84" width="26" height="10" fill="#fff"/>
+    <rect x="131" y="96" width="26" height="10" fill="#2e7d32"/>
+  </g>
+  <!-- Text -->
+  <text x="100" y="12" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" font-weight="700" fill="#f7c948" letter-spacing="1">GOVERNMENT OF</text>
+  <text x="100" y="24" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" font-weight="700" fill="#f7c948" letter-spacing="1">TAMIL NADU</text>
+  <text x="100" y="190" text-anchor="middle" font-family="Arial, sans-serif" font-size="7" fill="#cfe0ff">HACKATHON</text>
+</svg>

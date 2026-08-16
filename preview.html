@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Explore | Hackathon India</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0F172A; color: #E2E8F0; font-family: 'Segoe UI', Roboto, Arial, sans-serif; min-height: 100vh; }
+  ::-webkit-scrollbar { height: 4px; }
+  ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+
+  .header { display: flex; align-items: center; gap: 12px; padding: 14px 20px; background: #0F172A; border-bottom: 1px solid #1E293B; position: sticky; top: 0; z-index: 10; }
+  .logo-box { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .logo-box img { height: 38px; width: auto; }
+  .brand { color: #fff; font-size: 13px; font-weight: 800; line-height: 1.2; letter-spacing: 0.5px; white-space: nowrap; }
+  .search { flex: 1; max-width: 420px; position: relative; }
+  .search input { width: 100%; background: #1E293B; border: none; border-radius: 10px; color: #fff; padding: 9px 12px 9px 34px; font-size: 13px; outline: none; }
+  .search input::placeholder { color: #64748B; }
+  .search::before { content: '🔍'; position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 13px; opacity: .5; }
+  .suggest { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: #1E293B; border: 1px solid #334155; border-radius: 10px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,.5); z-index: 50; }
+  .suggest-label { padding: 8px 12px 4px; font-size: 9px; font-weight: 700; letter-spacing: 1px; color: #64748B; }
+  .suggest-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; font-size: 13px; color: #fff; cursor: pointer; }
+  .suggest-item:hover { background: #334155; }
+  .suggest-item .s-icon { font-size: 14px; width: 18px; text-align: center; }
+  .post-btn { border: 1.5px solid #10B981; background: transparent; color: #10B981; font-size: 11px; font-weight: 700; padding: 8px 14px; border-radius: 10px; cursor: pointer; white-space: nowrap; line-height: 1.2; text-align: center; flex-shrink: 0; }
+  .post-btn:hover { background: rgba(16,185,129,.1); }
+
+  .filters { display: flex; gap: 8px; padding: 10px 20px; overflow-x: auto; white-space: nowrap; border-bottom: 1px solid #1E293B; }
+  .chip { padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1.5px solid #334155; color: #94A3B8; background: #1E293B; transition: all .15s; flex-shrink: 0; }
+  .chip:hover { border-color: #64748B; }
+  .chip.active-green { background: #10B981; color: #fff; border-color: #10B981; }
+  .chip.active-purple { background: #7C3AED; color: #fff; border-color: #7C3AED; }
+
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; padding: 16px 20px; }
+  @media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 540px) { .grid { grid-template-columns: 1fr; } }
+
+  .card { background: linear-gradient(180deg, #1E293B 0%, #0F172A 100%); border-radius: 14px; overflow: hidden; border: 1px solid #334155; cursor: pointer; transition: transform .15s, box-shadow .15s; }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,.4); }
+  .card-img { position: relative; height: 120px; overflow: hidden; }
+  .card-img img { width: 100%; height: 100%; object-fit: cover; }
+  .card-img .overlay { position: absolute; inset: 0; background: linear-gradient(transparent 30%, #1E293B); }
+  .card-img .badge-status { position: absolute; top: 8px; right: 8px; padding: 3px 8px; border-radius: 6px; font-size: 9px; font-weight: 700; letter-spacing: .4px; color: #fff; }
+  .card-img .gov-badge { position: absolute; top: 8px; left: 8px; padding: 3px 8px; border-radius: 6px; font-size: 9px; font-weight: 700; letter-spacing: .4px; color: #fff; background: #7C3AED; display: inline-flex; align-items: center; gap: 4px; }
+  .badge-live { background: #10B981; }
+  .badge-upcoming { background: #F59E0B; }
+  .badge-online { background: #3B82F6; }
+  .badge-ended { background: #EF4444; }
+  .card-img .title { position: absolute; bottom: 8px; left: 10px; right: 10px; color: #fff; font-size: 13px; font-weight: 800; line-height: 1.25; text-transform: uppercase; letter-spacing: .3px; text-shadow: 0 1px 4px rgba(0,0,0,.5); }
+  .card-img .ph { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+
+  .card-body { padding: 10px 12px 12px; }
+  .org-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+  .org-avatar { width: 20px; height: 20px; border-radius: 50%; background: #334155; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #94A3B8; flex-shrink: 0; }
+  .org-name { font-size: 11px; color: #94A3B8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .meta-row { display: flex; align-items: center; gap: 5px; font-size: 10px; color: #94A3B8; margin-bottom: 3px; }
+  .meta-row .icon { font-size: 11px; opacity: .5; }
+  .prize-row { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; }
+  .prize-label { font-size: 10px; color: #64748B; }
+  .prize-val { font-size: 12px; font-weight: 700; color: #fff; }
+  .countdown { font-size: 10px; color: #F59E0B; margin-top: 4px; }
+  .countdown.closed { color: #EF4444; }
+
+  .detail-page { max-width: 640px; margin: 0 auto; padding: 0 20px 30px; }
+  .detail-hero { width: 100%; height: 220px; object-fit: cover; border-radius: 14px; margin-bottom: -30px; position: relative; z-index: 0; }
+  .detail-ph { width: 100%; height: 220px; border-radius: 14px; background: #1E293B; display: flex; align-items: center; justify-content: center; font-size: 64px; opacity: .15; margin-bottom: -30px; }
+  .ph { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; position: relative; flex-direction: column; gap: 4px; padding: 8px; box-sizing: border-box; }
+  .ph-emoj { font-size: 22px; }
+  .ph-title { font-size: 12px; font-weight: 700; color: rgba(255,255,255,.95); text-align: center; line-height: 1.3; max-width: 100%; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-shadow: 0 2px 6px rgba(0,0,0,.5); }
+  .ph-mode { position: absolute; top: 8px; right: 8px; background: rgba(16,185,129,.85); color: #fff; font-size: 8px; font-weight: 700; padding: 3px 8px; border-radius: 5px; letter-spacing: .5px; }
+  .ph-wrap .logo-img { position: absolute; inset: 0; margin: auto; width: 56px; height: 56px; object-fit: contain; border-radius: 12px; background: rgba(255,255,255,.92); padding: 6px; box-shadow: 0 4px 14px rgba(0,0,0,.35); }
+  .ph-wrap .govt-img { width: 84px; height: 84px; border-radius: 50%; background: #fff; padding: 6px; }
+  .ph-wrap { position: relative; width: 100%; height: 100%; }
+  .ph-wrap .ph { position: absolute; inset: 0; }
+  .ph-wrap img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .ph-wrap.detail-hero { height: 220px; margin-bottom: -30px; border-radius: 14px; overflow: hidden; position: relative; z-index: 0; }
+  .ph-wrap.detail-hero .ph-emoj { font-size: 56px; }
+  .ph-wrap.detail-hero .ph-title { font-size: 20px; -webkit-line-clamp: 3; }
+  .ph-wrap.detail-hero .ph-mode { font-size: 11px; }
+  .detail-card { background: #1E293B; border-radius: 14px; padding: 20px; position: relative; z-index: 1; }
+  .detail-title { font-size: 22px; font-weight: 800; color: #fff; margin: 10px 0 4px; }
+  .detail-tagline { font-size: 13px; color: #94A3B8; margin-bottom: 14px; }
+  .detail-badge { display: inline-block; padding: 4px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; color: #fff; margin-bottom: 12px; }
+  .detail-section { background: #0F172A; border-radius: 10px; padding: 14px; margin-bottom: 10px; }
+  .detail-row { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #CBD5E1; margin-bottom: 8px; }
+  .detail-row:last-child { margin-bottom: 0; }
+  .detail-row .d-icon { font-size: 15px; color: #64748B; width: 20px; text-align: center; }
+  .prize-big { font-size: 20px; font-weight: 800; color: #F59E0B; }
+  .about { font-size: 14px; color: #CBD5E1; line-height: 1.7; margin: 16px 0; }
+  .action-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px; border-radius: 10px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; margin-bottom: 8px; }
+  .action-btn.primary { background: #10B981; color: #fff; }
+  .action-btn.outline { background: transparent; border: 1.5px solid #334155; color: #E2E8F0; }
+  .action-btn.outline:hover { border-color: #64748B; }
+  .btn-row { display: flex; gap: 8px; }
+  .btn-row .action-btn { flex: 1; }
+
+  .back-btn { display: flex; align-items: center; gap: 6px; color: #fff; background: rgba(16,185,129,.15); border: 1px solid #10B981; font-size: 13px; font-weight: 600; cursor: pointer; margin: 16px 0; padding: 10px 16px; border-radius: 10px; width: fit-content; }
+  .back-btn:hover { background: #10B981; color: #fff; }
+  .spinner { text-align: center; padding: 60px 20px; color: #64748B; font-size: 14px; }
+  .error-box { background: rgba(239,68,68,.1); color: #EF4444; padding: 14px; border-radius: 10px; text-align: center; margin: 20px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo-box"><img src="assets/logo.svg" alt="Hackathon India"></div>
+  <div class="brand">HACKATHON<br>INDIA</div>
+  <div class="search"><input id="searchInput" type="text" placeholder="Search events, tech stacks, or cities..." autocomplete="off">
+    <div class="suggest" id="suggestBox" style="display:none"></div>
+  </div>
+  <button class="post-btn" onclick="alert('Coming soon!')">Post a<br>Hackathon</button>
+</div>
+<div class="filters" id="filters"></div>
+<div id="app"><div class="spinner">Loading hackathons...</div></div>
+
+<script>
+const SUPABASE_URL = 'https://ciarlvcyhieieioxeyth.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_GSPHK8dXrCbgxxXIh4U3BQ_K9MgNKP8';
+
+async function api(path) {
+  const r = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
+    headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
+  });
+  if (!r.ok) throw new Error('API error ' + r.status);
+  return r.json();
+}
+
+const app = document.getElementById('app');
+const filtersEl = document.getElementById('filters');
+const searchInput = document.getElementById('searchInput');
+
+let allHackathons = [];
+let selectedFilter = 'ALL INDIA';
+let query = '';
+
+const suggestBox = document.getElementById('suggestBox');
+
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function stateNames() {
+  const set = new Set();
+  allHackathons.forEach(h => { if (h.states && h.states.name) set.add(h.states.name); });
+  return [...set].sort();
+}
+
+function buildSuggestions(q) {
+  const low = q.toLowerCase();
+  if (!low) return [];
+  const out = [];
+  const seen = new Set();
+  const add = s => { if (!seen.has(s)) { seen.add(s); out.push(s); } };
+  const states = stateNames();
+  states.forEach(s => { if (s.toLowerCase().startsWith(low)) add(s); });
+  states.forEach(s => { if (s.toLowerCase().includes(low) && !s.toLowerCase().startsWith(low)) add(s); });
+  if ('online hackathons'.includes(low)) add('Online hackathons');
+  if ('government hackathons'.includes(low)) add('Government hackathons');
+  if (/govt|government|sarkar|sarkari|ministry/.test(low)) add('Government hackathons');
+  allHackathons.forEach(h => {
+    if (out.length >= 8) return;
+    if (h.title.toLowerCase().includes(low)) add(h.title);
+    if (out.length < 8 && h.city && h.city.toLowerCase().includes(low)) add(h.city);
+  });
+  return out.slice(0, 8);
+}
+
+function showSuggestions(list) {
+  if (!list.length) { suggestBox.style.display = 'none'; return; }
+  suggestBox.innerHTML = '<div class="suggest-label">SUGGESTIONS</div>' + list.map(s => {
+    const isState = stateNames().includes(s);
+    const isOnline = s === 'Online hackathons';
+    const isGov = s === 'Government hackathons';
+    const icon = isState ? '🗺️' : isOnline ? '🌐' : isGov ? '🏛️' : '🔍';
+    return '<div class="suggest-item" onclick="pickSuggestion(\''+s.replace(/'/g,"\\'")+'\')"><span class="s-icon">'+icon+'</span><span>'+esc(s)+'</span></div>';
+  }).join('');
+  suggestBox.style.display = 'block';
+}
+
+function pickSuggestion(s) {
+  suggestBox.style.display = 'none';
+  if (s === 'Online hackathons') {
+    selectedFilter = 'ONLINE';
+    searchInput.value = '';
+    query = '';
+  } else if (s === 'Government hackathons') {
+    selectedFilter = 'GOVERNMENT';
+    searchInput.value = '';
+    query = '';
+  } else if (stateNames().includes(s)) {
+    selectedFilter = s.toUpperCase();
+    searchInput.value = '';
+    query = '';
+  } else {
+    searchInput.value = s;
+    query = s;
+  }
+  renderFilters();
+  renderGrid();
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.search')) suggestBox.style.display = 'none';
+});
+
+function statusOf(h) {
+  const now = new Date();
+  const end = h.end_date ? new Date(h.end_date+'T23:59:59') : null;
+  const start = h.start_date ? new Date(h.start_date+'T00:00:00') : null;
+  if (end && end < now) return { text: 'ENDED', cls: 'badge-ended' };
+  if (h.mode === 'online') return { text: 'ONLINE', cls: 'badge-online' };
+  if (start && start <= now && (!end || end >= now)) return { text: 'LIVE', cls: 'badge-live' };
+  return { text: 'UPCOMING', cls: 'badge-upcoming' };
+}
+
+function fmtDate(d) {
+  if (!d) return 'TBA';
+  const x = new Date(d+'T00:00:00');
+  if (isNaN(x)) return 'TBA';
+  return x.toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+}
+
+function countdown(d) {
+  if (!d) return '';
+  const diff = new Date(d+'T23:59:59') - new Date();
+  if (diff < 0) return '<div class="countdown closed">Registration closed</div>';
+  const days = Math.floor(diff / 86400000);
+  if (days > 0) return '<div class="countdown">Registration ends in '+days+' days</div>';
+  const hours = Math.floor(diff / 3600000);
+  if (hours > 0) return '<div class="countdown">Ends in '+hours+' hours</div>';
+  return '<div class="countdown">Ends soon</div>';
+}
+
+function placeText(h) {
+  if (h.mode === 'online') return 'Online';
+  return [h.city, (h.states||{}).name].filter(Boolean).join(', ');
+}
+
+function domainOf(url) {
+  try { return url.replace(/^https?:\/\//,'').replace(/^www\./,'').split('/')[0].split(':')[0]; } catch(e) { return ''; }
+}
+
+function isGovernment(h) {
+  const hay = ((h.title||'') + ' ' + (h.description||'') + ' ' + (h.tagline||'') + ' ' + ((h.organizers||{}).name||'')).toLowerCase();
+  return /government|govt\.?|ministry|ministries|aicte|isro\b|drdo\b|defence|niti aayog|niti\b|municipal|smart india|panchayat|police|public health|railway|bharat sarkar|sarkari|government of|\btamil nadu\b.*\bgovt|\bgovt.*\btamil nadu\b/.test(hay);
+}
+
+function phColor(id) {
+  const pairs = [['#1a1a4e','#0d0d2b'],['#1a3a2e','#0d1f17'],['#2e1a3a','#1a0d22'],['#3a2a1a','#221a0d']];
+  return pairs[id % pairs.length];
+}
+
+function catEmoji(name) {
+  return /ctf|cyber|secur|hack|pwn/i.test(name) ? '🛡️' : /ai|ml|llm|robot|agent/i.test(name) ? '🤖' : /game|gaming|jam/i.test(name) ? '🎮' : /health|medic|bio/i.test(name) ? '🩺' : /financ|fintech|bank/i.test(name) ? '📈' : /space|aero|drone|rocket/i.test(name) ? '🚀' : /green|climate|sustain|eco/i.test(name) ? '🌿' : /code|dev|program/i.test(name) ? '💻' : /data|ml|analy/i.test(name) ? '📊' : '🏆';
+}
+
+function phOf(h, size) {
+  const name = (h && h.title || 'Hackathon').trim();
+  let hue = 0; for (const c of name) hue = (hue * 31 + c.charCodeAt(0)) % 360;
+  const bg = 'linear-gradient(135deg, hsl('+hue+',65%,28%), hsl('+((hue+70)%360)+',60%,20%))';
+  const mode = h && h.mode === 'online' ? 'ONLINE' : h && h.states && h.states.name ? h.states.name : '';
+  return '<div class="ph" style="background:'+bg+'">' +
+    '<div class="ph-emoj">'+catEmoji(name)+'</div>' +
+    '<div class="ph-title">'+esc(name)+'</div>' +
+    (mode ? '<span class="ph-mode">'+esc(mode)+'</span>' : '') +
+    '</div>';
+}
+
+function thumbHTML(h, size) {
+  const tnGovt = h && isGovernment(h) && h.states && /tamil nadu/i.test(h.states.name);
+  const ph = phOf(h, size);
+  if (!h || !h.thumbnail_url) {
+    if (tnGovt) return '<div class="ph-wrap '+size+'">'+ph+'<img class="'+size+' logo-img govt-img" src="assets/tn-govt.svg" alt="" loading="lazy"></div>';
+    const dom = domainOf(h.website_url || '');
+    if (dom) return '<div class="ph-wrap '+size+'">'+ph+'<img class="'+size+' logo-img" src="https://www.google.com/s2/favicons?domain='+esc(dom)+'&sz=128" alt="" loading="lazy" onerror="this.remove()"></div>';
+    return '<div class="ph-wrap '+size+'">'+ph+'</div>';
+  }
+  return '<div class="ph-wrap '+size+'">'+ph+'<img class="'+size+'" src="'+esc(h.thumbnail_url)+'" loading="lazy" onerror="this.remove()"></div>';
+}
+
+function renderFilters() {
+  const stateSet = new Set();
+  allHackathons.forEach(h => { if (h.states && h.states.name) stateSet.add(h.states.name.toUpperCase()); });
+  const states = [...stateSet].sort();
+  const items = ['ALL INDIA', 'GOVERNMENT', ...states, 'ONLINE', 'UPCOMING'];
+  filtersEl.innerHTML = items.map(f => {
+    const sel = f === selectedFilter;
+    let cls = 'chip';
+    if (sel) cls += f === 'ALL INDIA' || f === 'ONLINE' || f === 'UPCOMING' || f === 'GOVERNMENT' ? ' active-green' : ' active-purple';
+    return '<span class="'+cls+'" onclick="selectFilter(\''+f+'\')">'+f+'</span>';
+  }).join('');
+}
+
+function selectFilter(f) {
+  selectedFilter = f;
+  renderFilters();
+  renderGrid();
+}
+
+function getFiltered() {
+  const q = query.toLowerCase();
+  return allHackathons.filter(h => {
+    if (q) {
+      const hay = [h.title, h.description, h.city, (h.states||{}).name, (h.organizers||{}).name||''].join(' ').toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    if (selectedFilter === 'ALL INDIA') return true;
+    if (selectedFilter === 'GOVERNMENT') return isGovernment(h);
+    if (selectedFilter === 'ONLINE') return h.mode === 'online';
+    if (selectedFilter === 'UPCOMING') return statusOf(h).text !== 'ENDED';
+    return (h.states||{}).name && h.states.name.toUpperCase() === selectedFilter;
+  });
+}
+
+function renderGrid() {
+  const items = getFiltered();
+  if (!items.length) {
+    app.innerHTML = '<div class="spinner">No hackathons found</div>';
+    return;
+  }
+  app.innerHTML = '<div class="grid">' + items.map(h => {
+    const st = statusOf(h);
+    const img = thumbHTML(h, '');
+    const org = h.organizers || {};
+    return '<div class="card" onclick="openDetail('+h.id+')">' +
+      '<div class="card-img">' + img +
+      '<div class="overlay"></div>' +
+      (isGovernment(h) ? '<span class="gov-badge">🏛️ GOVT</span>' : '') +
+      '<span class="badge-status '+st.cls+'">'+st.text+'</span>' +
+      '<div class="title">'+esc(h.title)+'</div>' +
+      '</div>' +
+      '<div class="card-body">' +
+      (org.name ? '<div class="org-row"><div class="org-avatar">'+esc(org.name[0]||'?')+'</div><div class="org-name">'+esc(org.name)+'</div></div>' : '') +
+      '<div class="meta-row"><span class="icon">📍</span> '+esc(placeText(h) || 'Online')+'</div>' +
+      '<div class="meta-row"><span class="icon">📅</span> '+fmtDate(h.start_date)+' — '+fmtDate(h.end_date)+'</div>' +
+      (h.prize_pool ? '<div class="prize-row"><span class="prize-label">Prize pool</span><span class="prize-val">'+esc(h.prize_pool)+'</span></div>' : '') +
+      countdown(h.deadline) +
+      '</div></div>';
+  }).join('') + '</div>';
+}
+
+async function openDetail(id) {
+  app.innerHTML = '<div class="spinner">Loading...</div>';
+  try {
+    const rows = await api('hackathons?select=*,states(name),organizers(*)&id=eq.'+id);
+    const h = rows[0];
+    if (!h) { app.innerHTML = '<div class="error-box">Not found</div>'; return; }
+    const st = statusOf(h);
+    const org = h.organizers || {};
+    const img = thumbHTML(h, 'detail-hero');
+    let html = '<div class="detail-page">' +
+      '<div class="back-btn" onclick="renderAll()">← Back to explore</div>' + img +
+      '<div class="detail-card">' +
+      '<span class="detail-badge '+st.cls+'">'+st.text+'</span>' +
+      '<div class="detail-title">'+esc(h.title)+'</div>' +
+      (h.tagline ? '<div class="detail-tagline">'+esc(h.tagline)+'</div>' : '') +
+      '<div class="detail-section">' +
+      '<div class="detail-row"><span class="d-icon">📍</span> '+esc(placeText(h) || 'Online')+'</div>' +
+      '<div class="detail-row"><span class="d-icon">📅</span> '+fmtDate(h.start_date)+' — '+fmtDate(h.end_date)+'</div>' +
+      '<div class="detail-row"><span class="d-icon">💻</span> '+(h.mode||'hybrid').charAt(0).toUpperCase()+(h.mode||'hybrid').slice(1)+' event</div>' +
+      (h.deadline ? '<div class="detail-row"><span class="d-icon">⏰</span> Registration deadline: '+fmtDate(h.deadline)+'</div>' : '') +
+      '</div>';
+    if (h.prize_pool) {
+      html += '<div class="detail-section"><div class="detail-row"><span class="d-icon">🏆</span> <span class="prize-big">'+esc(h.prize_pool)+'</span></div></div>';
+    }
+    if (org.name) {
+      html += '<div class="detail-section"><div class="detail-row"><div class="org-avatar" style="width:28px;height:28px;font-size:14px">'+esc(org.name[0]||'?')+'</div><div><div style="font-size:11px;color:#94A3B8">Organized by</div><div style="font-size:14px;font-weight:600;color:#fff">'+esc(org.name)+'</div></div></div></div>';
+    }
+    if (h.description) html += '<div class="about">'+esc(h.description)+'</div>';
+    if (h.website_url) html += '<a class="action-btn primary" target="_blank" href="'+esc(h.website_url)+'">🌐 Visit Official Website</a>';
+    if (org.whatsapp || org.email || org.phone) {
+      html += '<div class="btn-row">';
+      if (org.whatsapp) html += '<a class="action-btn outline" target="_blank" href="https://wa.me/'+org.whatsapp.replace(/\D/g,'')+'">💬 WhatsApp</a>';
+      if (org.email) html += '<a class="action-btn outline" href="mailto:'+esc(org.email)+'">✉️ Email</a>';
+      if (org.phone) html += '<a class="action-btn outline" href="tel:+'+org.phone.replace(/\D/g,'')+'">📞 Call</a>';
+      html += '</div>';
+    }
+    html += '</div></div>';
+    app.innerHTML = html;
+    window.scrollTo(0, 0);
+  } catch (e) {
+    app.innerHTML = '<div class="error-box">'+esc(e.message)+'</div>';
+  }
+}
+
+async function renderAll() {
+  app.innerHTML = '<div class="spinner">Loading hackathons...</div>';
+  try {
+    allHackathons = await api('hackathons?select=*,states(name),organizers(*)&is_active=eq.true&order=start_date');
+    renderFilters();
+    renderGrid();
+  } catch (e) {
+    app.innerHTML = '<div class="error-box">Could not load hackathons.<br><small>'+esc(e.message)+'</small></div>';
+  }
+}
+
+searchInput.addEventListener('input', e => {
+  query = e.target.value;
+  showSuggestions(buildSuggestions(e.target.value));
+  renderGrid();
+});
+searchInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    suggestBox.style.display = 'none';
+    const q = query.trim();
+    const full = stateNames().find(s => s.toLowerCase() === q.toLowerCase());
+    if (full) pickSuggestion(full);
+    else if (/^(government|govt|sarkari|sarkar|ministry)$/i.test(q)) pickSuggestion('Government hackathons');
+    else if (q) renderGrid();
+  }
+});
+renderAll();
+</script>
+</body>
+</html>
