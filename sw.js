@@ -1,4 +1,4 @@
-const CACHE = 'hackathon-india-v2';
+const CACHE = 'hackathon-india-v3';
 const ASSETS = [
   'index.html',
   'manifest.webmanifest',
