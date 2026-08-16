@@ -63,6 +63,10 @@
   .badge-status { position: absolute; top: 8px; right: 8px; padding: 3px 8px; border-radius: 6px; font-size: 9px; font-weight: 700; letter-spacing: .4px; color: #fff; }
   .blive { background: #10B981; } .bup { background: #F59E0B; } .bon { background: #3B82F6; } .bend { background: #EF4444; }
   .gov-badge { position: absolute; top: 8px; left: 40px; padding: 3px 8px; border-radius: 6px; font-size: 9px; font-weight: 700; letter-spacing: .4px; color: #fff; background: #7C3AED; display: inline-flex; align-items: center; gap: 4px; z-index: 2; }
+  .badge-new { position: absolute; top: 8px; left: 8px; padding: 3px 8px; border-radius: 6px; font-size: 9px; font-weight: 700; letter-spacing: .4px; color: #fff; background: #10B981; z-index: 2; box-shadow: 0 0 0 3px rgba(16,185,129,.25); }
+  .updated-line { display: flex; align-items: center; gap: 8px; max-width: 1200px; margin: 16px auto 4px; padding: 0 16px; font-size: 12px; color: #94A3B8; }
+  .updated-line .dot { width: 8px; height: 8px; border-radius: 50%; background: #10B981; flex: none; }
+  .updated-line b { color: #CBD5E1; font-weight: 600; }
   .fav-btn { position: absolute; top: 7px; left: 8px; width: 26px; height: 26px; border-radius: 50%; background: rgba(15,23,42,.65); border: none; color: #94A3B8; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 3; }
   .fav-btn.faved { color: #F59E0B; }
   .card-img .title { position: absolute; bottom: 8px; left: 10px; right: 10px; color: #fff; font-size: 12.5px; font-weight: 800; line-height: 1.25; text-transform: uppercase; letter-spacing: .3px; text-shadow: 0 1px 4px rgba(0,0,0,.6); }
@@ -168,6 +172,7 @@
 <button class="top-btn" id="topBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top"><i class="fa-solid fa-arrow-up"></i></button>
 
 <div class="filters" id="filters"></div>
+<div class="updated-line" id="updatedLine" style="display:none"></div>
 <div id="app"><div class="spinner"><i class="fas fa-spinner fa-spin"></i>Loading hackathons...</div></div>
 
 <div class="detail-wrap" id="detailWrap" style="display:none"></div>
@@ -214,6 +219,7 @@ function fmtDate(d){ if(!d) return 'TBA'; const x=new Date(d+'T00:00:00'); if(is
 function countdown(d){ if(!d) return ''; const diff=new Date(d+'T23:59:59')-new Date(); if(diff<0) return '<div class="countdown closed">Registration closed</div>'; const days=Math.floor(diff/86400000); if(days>0) return '<div class="countdown">Registration ends in '+days+' days</div>'; const hrs=Math.floor(diff/3600000); return hrs>0?'<div class="countdown">Ends in '+hrs+' hours</div>':'<div class="countdown">Ends soon</div>'; }
 function placeText(h){ if(h.mode==='online') return 'Online'; return [h.city,(h.states||{}).name].filter(Boolean).join(', '); }
 function domainOf(url){ try{ return url.replace(/^https?:\/\//,'').replace(/^www\./,'').split('/')[0].split(':')[0]; }catch(e){ return ''; } }
+function isNew(h){ if(!h.created_at) return false; const d=new Date(h.created_at); return !isNaN(d) && (new Date()-d) < 7*86400000; }
 function isGovernment(h){
   const hay=((h.title||'')+' '+(h.description||'')+' '+(h.tagline||'')+' '+((h.organizers||{}).name||'')).toLowerCase();
   return /government|govt\.?|ministry|ministries|aicte|isro\b|drdo\b|defence|niti aayog|niti\b|municipal|smart india|panchayat|police|public health|railway|bharat sarkar|sarkari|government of|\btamil nadu\b.*\bgovt|\bgovt.*\btamil nadu\b/.test(hay);
@@ -314,7 +320,10 @@ function getFiltered(){
   });
 }
 function renderGrid(){
-  const items=getFiltered();
+  const items=getFiltered().slice().sort((a,b)=>{
+    const na=isNew(a)?1:0, nb=isNew(b)?1:0;
+    return nb-na;
+  });
   if(!items.length){ app.innerHTML='<div class="empty"><i class="fa-regular fa-folder-open"></i>No hackathons found</div>'; return; }
   app.innerHTML='<div class="grid">'+items.map(h=>{
     const st=statusOf(h), fav=favs.has(h.id);
@@ -324,6 +333,7 @@ function renderGrid(){
     return '<div class="card'+(fav?' faved':'')+'" onclick="openDetail('+h.id+')">'+
       '<div class="card-img">'+img+'<div class="overlay"></div>'+
       '<button class="fav-btn'+(fav?' faved':'')+'" onclick="toggleFav('+h.id+',event)"><i class="'+(fav?'fa-solid':'fa-regular')+' fa-heart"></i></button>'+
+      (isNew(h)?'<span class="badge-new">NEW</span>':'')+
       (isGovernment(h)?'<span class="gov-badge"><i class="fa-solid fa-building-columns"></i> GOVT</span>':'')+
       '<span class="badge-status '+st.cls+'">'+st.text+'</span>'+
       '<div class="title">'+esc(h.title)+'</div></div>'+
@@ -426,6 +436,10 @@ async function load(){
       api('hackathons?select=*,states(name),organizers(*)&is_active=eq.true&order=start_date')
     ]);
     allHackathons=hack;
+    let lastUpd=null;
+    allHackathons.forEach(x=>{ const t=x.created_at?new Date(x.created_at):null; if(t&&!isNaN(t)&&(!lastUpd||t>lastUpd)) lastUpd=t; });
+    const ul=document.getElementById('updatedLine');
+    if(lastUpd){ ul.style.display='flex'; ul.innerHTML='<span class="dot"></span> Updated daily at 9 AM IST &middot; Last refresh: <b>'+lastUpd.toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit'})+'</b>'; }
     renderFilters(); renderGrid();
   }catch(e){
     app.innerHTML='<div class="empty"><i class="fa-solid fa-triangle-exclamation"></i>Could not load.<br><small>'+esc(e.message)+'</small><br><br><button class="btn-primary" onclick="load()">Retry</button></div>';
