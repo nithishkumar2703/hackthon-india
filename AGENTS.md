@@ -27,7 +27,7 @@ hackathons, so the site stays fresh with zero manual work.
 - `preview.html`, `preview_real.html` — static previews generated from the SQL by
   `build_preview_real.py`. NOT the live app. Regenerate, never hand-edit.
 - `assets/` — logo, TN govt emblem etc.
-- `sw.js`, `manifest.webmanifest` — PWA support.
+- `sw.js`, `manifest.webmanifest` — PWA support. `sw.js` caches the app shell AND last-loaded Supabase data (network-first, offline fallback) so the app works with no internet. Keep the cache version string in sync with changes, and never break the Supabase fetch-caching branch.
 
 ## Database
 `hackathons` table columns: id, title, tagline, description, state_id (FK states,

@@ -1,8 +1,12 @@
-const CACHE = 'hackathon-india-v1';
+const CACHE = 'hackathon-india-v2';
 const ASSETS = [
   'index.html',
   'manifest.webmanifest',
-  'assets/logo.svg'
+  'assets/logo.svg',
+  'assets/icon-192.png',
+  'assets/icon-512.png',
+  'assets/icon-180.png',
+  'assets/tn-govt.svg'
 ];
 
 self.addEventListener('install', (e) => {
@@ -21,6 +25,8 @@ self.addEventListener('activate', (e) => {
 
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
+
+  // Same-origin files: stale-while-revalidate (fast + always fresh when online)
   if (url.origin === self.location.origin) {
     e.respondWith(
       caches.match(e.request).then((cached) => {
@@ -33,6 +39,20 @@ self.addEventListener('fetch', (e) => {
         }).catch(() => cached);
         return cached || fetched;
       })
+    );
+    return;
+  }
+
+  // Supabase data: network-first, fall back to last cached data when offline
+  if (url.origin === 'https://ciarlvcyhieieioxeyth.supabase.co' && e.request.method === 'GET') {
+    e.respondWith(
+      fetch(e.request).then((res) => {
+        if (res.ok) {
+          const clone = res.clone();
+          caches.open(CACHE).then((c) => c.put(e.request, clone));
+        }
+        return res;
+      }).catch(() => caches.match(e.request).then((c) => c || new Response(JSON.stringify([]), { headers: { 'Content-Type': 'application/json' } })))
     );
   }
 });

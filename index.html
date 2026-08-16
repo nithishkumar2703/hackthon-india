@@ -67,6 +67,7 @@
   .updated-line { display: flex; align-items: center; gap: 8px; max-width: 1200px; margin: 16px auto 4px; padding: 0 16px; font-size: 12px; color: #94A3B8; }
   .updated-line .dot { width: 8px; height: 8px; border-radius: 50%; background: #10B981; flex: none; }
   .updated-line b { color: #CBD5E1; font-weight: 600; }
+  .off-chip { background: #EF4444; color: #fff; font-size: 10px; font-weight: 700; letter-spacing: .4px; padding: 2px 8px; border-radius: 6px; flex: none; }
   .fav-btn { position: absolute; top: 7px; left: 8px; width: 26px; height: 26px; border-radius: 50%; background: rgba(15,23,42,.65); border: none; color: #94A3B8; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 3; }
   .fav-btn.faved { color: #F59E0B; }
   .card-img .title { position: absolute; bottom: 8px; left: 10px; right: 10px; color: #fff; font-size: 12.5px; font-weight: 800; line-height: 1.25; text-transform: uppercase; letter-spacing: .3px; text-shadow: 0 1px 4px rgba(0,0,0,.6); }
@@ -439,7 +440,7 @@ async function load(){
     let lastUpd=null;
     allHackathons.forEach(x=>{ const t=x.created_at?new Date(x.created_at):null; if(t&&!isNaN(t)&&(!lastUpd||t>lastUpd)) lastUpd=t; });
     const ul=document.getElementById('updatedLine');
-    if(lastUpd){ ul.style.display='flex'; ul.innerHTML='<span class="dot"></span> Updated daily at 9 AM IST &middot; Last refresh: <b>'+lastUpd.toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit'})+'</b>'; }
+    if(lastUpd){ ul.style.display='flex'; ul.innerHTML=(navigator.onLine?'':'<span class="off-chip">OFFLINE</span> ')+'<span class="dot"></span> Updated daily at 9 AM IST &middot; Last refresh: <b>'+lastUpd.toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit'})+'</b>'; }
     renderFilters(); renderGrid();
   }catch(e){
     app.innerHTML='<div class="empty"><i class="fa-solid fa-triangle-exclamation"></i>Could not load.<br><small>'+esc(e.message)+'</small><br><br><button class="btn-primary" onclick="load()">Retry</button></div>';
