@@ -201,6 +201,7 @@
   </div>
   <div class="user-box">
     <button class="btn-primary" onclick="openPostFlow()"><i class="fas fa-plus"></i>&nbsp; Post</button>
+    <button class="btn-primary outline-btn" id="endingBtn" style="display:none" onclick="showEndingToday()"><i class="fa-solid fa-fire"></i>&nbsp; <span id="endingCount"></span> Ending Today</button>
     <button class="btn-primary outline-btn" onclick="openDashboard()"><i class="fa-solid fa-gauge-high"></i>&nbsp; My Posts</button>
   </div>
 </div>
@@ -208,7 +209,6 @@
 
 <div class="filters" id="filters"></div>
 <div class="updated-line" id="updatedLine" style="display:none"></div>
-<div class="ending-bar" id="endingBar" style="display:none" onclick="showEndingToday()"></div>
 <div id="app"><div class="spinner"><i class="fas fa-spinner fa-spin"></i>Loading hackathons...</div></div>
 
 <div class="detail-wrap" id="detailWrap" style="display:none"></div>
@@ -580,11 +580,12 @@ function computeEndingToday(){
 }
 function renderEndingBar(){
   computeEndingToday();
-  const bar=document.getElementById('endingBar');
+  const btn=document.getElementById('endingBtn');
+  const cnt=document.getElementById('endingCount');
   if(endingToday>0){
-    bar.style.display='flex';
-    bar.innerHTML='<span class="e-count">'+endingToday+'</span><span class="e-text">'+endingToday+' hackathon'+(endingToday>1?'s':'')+' ending today!</span><span class="e-arrow">Click to see breakdown →</span>';
-  }else{ bar.style.display='none'; }
+    btn.style.display='inline-block';
+    cnt.textContent=endingToday;
+  }else{ btn.style.display='none'; }
 }
 function showEndingToday(){
   computeEndingToday();
